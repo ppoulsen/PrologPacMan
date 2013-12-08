@@ -57,8 +57,60 @@ powerCells(Map) :-
     checkPowerCorner(SecondRow),
     checkPowerCorner(SndLastRow).
 
+shortestPath(Map, PositionOfMan, SuccessX, SuccessY, ShortestPath) :-
+    findall(Length-Path, (findPathStart(Map, PositionOfMan, SuccessX, SuccessY, Path), length(Path, Length)), All),
+    keysort(All, [_-ShortestPath|_]).
+
+findPathStart(Map, PositionOfMan, SuccessX, SuccessY, Path) :-
+    findPath(Map, [PositionOfMan], SuccessX, SuccessY, [], Path).
+
+findPath(Map, [Current|Past], SuccessX, SuccessY, Memory, Path) :-
+    move(Current, Next, Move),
+    nth0(0, Next, NextX),
+    nth0(1, Next, NextY),
+    nth0(NextY, Map, Row),
+    nth0(NextX, Row, NextCell),
+    ( (NextX == SuccessX, NextY == SuccessY)
+      -> reverse([Move|Memory], Path)
+      ;  isValidMove(NextCell)
+      -> \+ memberchk(Next, Past),
+      findPath(Map, [Next,Current|Past], SuccessX, SuccessY, [Move|Memory], Path)
+      ; fail
+    ).
+
+move(Position, Next, Move) :-
+    nth0(0, Position, StartX),
+    nth0(1, Position, StartY),
+    ( X is StartX - 1, Y is StartY, Move = l;
+    X is StartX + 1, Y is StartY, Move = r;
+    X is StartX, Y is StartY - 1, Move = d;
+    X is StartX, Y is StartY + 1, Move = u) ,
+    Next = [X, Y].
+
+checkAllCellsRow(_, [], _, _, _).
+checkAllCellsRow(Map, [H|T], PositionOfPacman, Col, Row) :-
+    (
+      H == b;
+      H == w;
+      H == m;
+      H \== b, H \== w, H \== m, shortestPath(Map, PositionOfPacman, Col, Row, _)
+    ),
+    NextCol is Col + 1,
+    checkAllCellsRow(Map, T, PositionOfPacman, NextCol, Row).
+
+checkAllCells(_, [], _, _).
+checkAllCells(Map, [H|T], PositionOfPacman, Row) :-
+    checkAllCellsRow(Map, H, PositionOfPacman, 0, Row),
+    NextRow is Row + 1,
+    checkAllCells(Map, T, PositionOfPacman, NextRow).
+
+reachableCells(Map) :-
+    findSymbol(Map, m, PositionOfPacman),
+    checkAllCells(Map, Map, PositionOfPacman, 0).
+
 makeMap(Map) :-
     validCells(Map),
     percentWalls(Map),
     checkBorders(Map),
-    powerCells(Map).
+    powerCells(Map),
+    reachableCells(Map).

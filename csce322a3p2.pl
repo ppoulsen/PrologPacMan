@@ -1,5 +1,7 @@
 :- module( csce322a3p2,
-    [ pathOfGhost/2
+    [ pathOfGhost/2,
+      findSymbol/3,
+      isValidMove/1
     ]
 ).
 
