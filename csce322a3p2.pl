@@ -50,9 +50,43 @@ verifyPathReaches(Map, Start, End, [H|T]) :-
     !,
     verifyPathReaches(Map, [NextX, NextY], End, T).
 
+shortestPath(Map, PositionOfGhost, Success, ShortestPath) :-
+    findall(Length-Path, (findPathStart(Map, PositionOfGhost, Success, Path), length(Path, Length)), All),
+    keysort(All, [_-ShortestPath|_]).
+
+findPathStart(Map, PositionOfGhost, Success, Path) :-
+    findPath(Map, [PositionOfGhost], Success, [], Path).
+
+findPath(Map, [Current|Past], Success, Memory, Path) :-
+    move(Current, Next, Move),
+    nth0(0, Next, NextX),
+    nth0(1, Next, NextY),
+    nth0(NextY, Map, Row),
+    nth0(NextX, Row, NextCell),
+    ( NextCell == Success
+      -> reverse([Move|Memory], Path)
+      ;  isValidMove(NextCell)
+      -> \+ memberchk(Next, Past),
+      findPath(Map, [Next,Current|Past], Success, [Move|Memory], Path)
+      ; fail
+    ).
+
+move(Position, Next, Move) :-
+    nth0(0, Position, StartX),
+    nth0(1, Position, StartY),
+    ( X is StartX - 1, Y is StartY, Move = l;
+    X is StartX + 1, Y is StartY, Move = r;
+    X is StartX, Y is StartY - 1, Move = d;
+    X is StartX, Y is StartY + 1, Move = u) ,
+    Next = [X, Y].
+
 
 pathOfGhost(Map, Path) :-
     isGhost(G),
     findSymbol(Map, G, PositionOfGhost),
     findSymbol(Map, m, PositionOfPacman),
-    verifyPathReaches(Map, PositionOfGhost, PositionOfPacman, Path).
+    verifyPathReaches(Map, PositionOfGhost, PositionOfPacman, Path),
+    shortestPath(Map, PositionOfGhost, m, ShortestPath),
+    length(Path, PathLength),
+    length(ShortestPath, BestLength),
+    PathLength == BestLength.
