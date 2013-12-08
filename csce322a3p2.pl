@@ -80,13 +80,17 @@ move(Position, Next, Move) :-
     X is StartX, Y is StartY + 1, Move = u) ,
     Next = [X, Y].
 
+checkEqual([],[]).
+checkEqual([H1|T1],[H2|T2]) :-
+    H1 == H2,
+    checkEqual(T1, T2).
 
 pathOfGhost(Map, Path) :-
     isGhost(G),
     findSymbol(Map, G, PositionOfGhost),
     findSymbol(Map, m, PositionOfPacman),
-    verifyPathReaches(Map, PositionOfGhost, PositionOfPacman, Path),
     shortestPath(Map, PositionOfGhost, m, ShortestPath),
-    length(Path, PathLength),
-    length(ShortestPath, BestLength),
-    PathLength == BestLength.
+    ( ground(Path)
+      -> checkEqual(ShortestPath, Path)
+      ; Path = ShortestPath
+    ).
