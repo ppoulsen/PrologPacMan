@@ -45,4 +45,5 @@ percentWallsCalc(Map, X) :-
 
 percentWalls(Map) :-
     percentWallsCalc(Map, X),
-    X @>= 0.10.
+    !,
+    X >= 0.10.
