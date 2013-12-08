@@ -1,3 +1,8 @@
+:- module( csce322a3p2,
+    [ pathOfGhost/2
+    ]
+).
+
 isGhost(g).
 isGhost(6).
 isGhost(r).
@@ -6,6 +11,9 @@ isValidMove(p).
 isValidMove(f).
 isValidMove(u).
 isValidMove(m).
+isValidMove(g).
+isValidMove(6).
+isValidMove(r).
 
 findSymbolRow([], Char, X) :- X is -1.
 findSymbolRow([Char|_], Char, X) :- X is 0.

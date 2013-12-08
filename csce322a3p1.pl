@@ -1,3 +1,8 @@
+:- module( csce322a3p1,
+    [ percentWalls/1
+    ]
+).
+
 isBorder(b).
 isWall(w).
 isFood(f).
