@@ -76,17 +76,21 @@ returnAllPaths([H|T], ShortestPath) :-
       returnAllPaths(T, ShortestPath)
     ).
 
+findShortestLength(All, ShortestLength) :-
+    keysort(All, [ShortestLength-_|_]).
+
 shortestPath(Map, PositionOfGhost, Success, ShortestPath) :-
-    findall(Length-Path, (findPathStart(Map, PositionOfGhost, Success, Path), length(Path, Length)), All),
-    keysort(All, [ShortestLength-_|_]),
+    findall(Length-Path, (startTravelling(Map, PositionOfGhost, Success, Path), length(Path, Length)), All),
+    findShortestLength(All, ShortestLength),
     getAllShortest(All, ShortestLength, ShortestPaths),
     returnAllPaths(ShortestPaths, ShortestPath).
 
-findPathStart(Map, PositionOfGhost, Success, Path) :-
-    findPath(Map, [PositionOfGhost], Success, [], Path).
+startTravelling(Map, PositionOfGhost, Success, Path) :-
+    travel(Map, [PositionOfGhost], Success, [], Path).
 
-findPath(Map, [Current|Past], Success, Memory, Path) :-
-    move(Current, Next, Move),
+travel(Map, [Current|Past], Success, Memory, Path) :-
+    generateAllMoves(Current, Next, Move),
+    % Move will iterate through all possible moves and Next will be the next coordinate
     nth0(0, Next, NextX),
     nth0(1, Next, NextY),
     nth0(NextY, Map, Row),
@@ -95,17 +99,30 @@ findPath(Map, [Current|Past], Success, Memory, Path) :-
       -> reverse([Move|Memory], Path)
       ;  isValidMove(NextCell)
       -> \+ memberchk(Next, Past),
-      findPath(Map, [Next,Current|Past], Success, [Move|Memory], Path)
+      travel(Map, [Next,Current|Past], Success, [Move|Memory], Path)
       ; fail
     ).
 
-move(Position, Next, Move) :-
+generateAllMoves(Position, Next, Move) :-
     nth0(0, Position, StartX),
     nth0(1, Position, StartY),
-    ( X is StartX - 1, Y is StartY, Move = l;
-    X is StartX + 1, Y is StartY, Move = r;
-    X is StartX, Y is StartY - 1, Move = u;
-    X is StartX, Y is StartY + 1, Move = d) ,
+    (
+     X is StartX - 1,
+     Y is StartY,
+     Move = l ;
+     
+     X is StartX + 1,
+     Y is StartY,
+     Move = r;
+     
+     X is StartX,
+     Y is StartY - 1,
+     Move = u;
+     
+     X is StartX,
+     Y is StartY + 1,
+     Move = d
+    ),
     Next = [X, Y].
 
 checkEqual([],[]).
