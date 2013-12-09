@@ -17,7 +17,7 @@ isValidMove(g).
 isValidMove(6).
 isValidMove(r).
 
-findSymbolRow([], Char, X) :- X is -1.
+findSymbolRow([], _, X) :- X is -1.
 findSymbolRow([Char|_], Char, X) :- X is 0.
 findSymbolRow([_|T], Char, X) :-
     findSymbolRow(T, Char, NewIndex),
@@ -26,7 +26,7 @@ findSymbolRow([_|T], Char, X) :-
       ;  X is NewIndex+1
     ).
 
-findSymbolHelper([], Char, Position, Y) :- fail.
+findSymbolHelper([], _, _, _) :- fail.
 findSymbolHelper([H|T], Char, Solution, Y) :-
     findSymbolRow(H, Char, X),
     ( X @< 0
@@ -37,7 +37,7 @@ findSymbolHelper([H|T], Char, Solution, Y) :-
 findSymbol(Map, Char, Position) :-
     findSymbolHelper(Map, Char, Position, 0).
 
-verifyPathReaches(Map, Start, End, []) :-
+verifyPathReaches(_, Start, End, []) :-
     nth0(0, Start, StartX),
     nth0(1, Start, StartY),
     nth0(0, End, EndX),
@@ -60,9 +60,27 @@ verifyPathReaches(Map, Start, End, [H|T]) :-
     !,
     verifyPathReaches(Map, [NextX, NextY], End, T).
 
+getAllShortest([], _, ShortestPaths) :- ShortestPaths = [].
+getAllShortest([Key-Value|T], ShortestLength, [H|T2]) :-
+    Key == ShortestLength,
+    H = Value,
+    getAllShortest(T, ShortestLength, T2).
+getAllShortest([Key-_|_], ShortestLength, ShortestPaths) :-
+    Key \== ShortestLength,
+    ShortestPaths = [].
+
+returnAllPaths([], _) :- fail.
+returnAllPaths([H|T], ShortestPath) :-
+    (
+      ShortestPath = H ;
+      returnAllPaths(T, ShortestPath)
+    ).
+
 shortestPath(Map, PositionOfGhost, Success, ShortestPath) :-
     findall(Length-Path, (findPathStart(Map, PositionOfGhost, Success, Path), length(Path, Length)), All),
-    keysort(All, [_-ShortestPath|_]).
+    keysort(All, [ShortestLength-_|_]),
+    getAllShortest(All, ShortestLength, ShortestPaths),
+    returnAllPaths(ShortestPaths, ShortestPath).
 
 findPathStart(Map, PositionOfGhost, Success, Path) :-
     findPath(Map, [PositionOfGhost], Success, [], Path).
@@ -86,8 +104,8 @@ move(Position, Next, Move) :-
     nth0(1, Position, StartY),
     ( X is StartX - 1, Y is StartY, Move = l;
     X is StartX + 1, Y is StartY, Move = r;
-    X is StartX, Y is StartY - 1, Move = d;
-    X is StartX, Y is StartY + 1, Move = u) ,
+    X is StartX, Y is StartY - 1, Move = u;
+    X is StartX, Y is StartY + 1, Move = d) ,
     Next = [X, Y].
 
 checkEqual([],[]).
@@ -98,7 +116,6 @@ checkEqual([H1|T1],[H2|T2]) :-
 pathOfGhost(Map, Path) :-
     isGhost(G),
     findSymbol(Map, G, PositionOfGhost),
-    findSymbol(Map, m, PositionOfPacman),
     shortestPath(Map, PositionOfGhost, m, ShortestPath),
     ( ground(Path)
       -> checkEqual(ShortestPath, Path)
