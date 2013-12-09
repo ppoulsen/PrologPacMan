@@ -65,9 +65,9 @@ getAllShortest([Key-Value|T], ShortestLength, [H|T2]) :-
     Key == ShortestLength,
     H = Value,
     getAllShortest(T, ShortestLength, T2).
-getAllShortest([Key-_|_], ShortestLength, ShortestPaths) :-
+getAllShortest([Key-_|T], ShortestLength, ShortestPaths) :-
     Key \== ShortestLength,
-    ShortestPaths = [].
+    getAllShortest(T, ShortestLength, ShortestPaths).
 
 returnAllPaths([], _) :- fail.
 returnAllPaths([H|T], ShortestPath) :-
