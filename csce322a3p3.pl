@@ -99,15 +99,18 @@ powerCells(Map) :-
     checkPowerCorner(SndLastRow),
     checkNoOtherPowers(Map, SndLstRowInd, 0).
 
-shortestPath(Map, PositionOfMan, SuccessX, SuccessY, ShortestPath) :-
-    findall(Length-Path, (findPathStart(Map, PositionOfMan, SuccessX, SuccessY, Path), length(Path, Length)), All),
+findShortestPath(All, ShortestPath) :-
     keysort(All, [_-ShortestPath|_]).
 
-findPathStart(Map, PositionOfMan, SuccessX, SuccessY, Path) :-
-    findPath(Map, [PositionOfMan], SuccessX, SuccessY, [], Path).
+shortestPath(Map, PositionOfMan, SuccessX, SuccessY, ShortestPath) :-
+    findall(Length-Path, (startTravelling(Map, PositionOfMan, SuccessX, SuccessY, Path), length(Path, Length)), All),
+    findShortestPath(All, ShortestPath).
 
-findPath(Map, [Current|Past], SuccessX, SuccessY, Memory, Path) :-
-    move(Current, Next, Move),
+startTravelling(Map, PositionOfMan, SuccessX, SuccessY, Path) :-
+    travel(Map, [PositionOfMan], SuccessX, SuccessY, [], Path).
+
+travel(Map, [Current|Past], SuccessX, SuccessY, Memory, Path) :-
+    generateAllMoves(Current, Next, Move),
     nth0(0, Next, NextX),
     nth0(1, Next, NextY),
     nth0(NextY, Map, Row),
@@ -116,17 +119,30 @@ findPath(Map, [Current|Past], SuccessX, SuccessY, Memory, Path) :-
       -> reverse([Move|Memory], Path)
       ;  isValidMove(NextCell)
       -> \+ memberchk(Next, Past),
-      findPath(Map, [Next,Current|Past], SuccessX, SuccessY, [Move|Memory], Path)
+      travel(Map, [Next,Current|Past], SuccessX, SuccessY, [Move|Memory], Path)
       ; fail
     ).
 
-move(Position, Next, Move) :-
+generateAllMoves(Position, Next, Move) :-
     nth0(0, Position, StartX),
     nth0(1, Position, StartY),
-    ( X is StartX - 1, Y is StartY, Move = l;
-    X is StartX + 1, Y is StartY, Move = r;
-    X is StartX, Y is StartY - 1, Move = d;
-    X is StartX, Y is StartY + 1, Move = u) ,
+    (
+     X is StartX - 1,
+     Y is StartY,
+     Move = l;
+     
+     X is StartX + 1,
+     Y is StartY,
+     Move = r;
+     
+     X is StartX,
+     Y is StartY - 1,
+     Move = d;
+     
+     X is StartX,
+     Y is StartY + 1,
+     Move = u
+    ),
     Next = [X, Y].
 
 checkAllCellsRow(_, [], _, _, _).
