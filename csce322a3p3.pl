@@ -57,13 +57,38 @@ checkBorders(Map) :-
     allBorders(LastRow),
     checkEdges(Map, 0, LastRowIndex).
 
+checkRestOfRow(_, SndLstCellInd, SndLstCellInd).
+checkRestOfRow([H|T], SndLstCellInd, Index) :-
+    (
+     Index == 1 ;
+     Index \== 1, H \== p, H \== r
+    ),
+    NextIndex is Index + 1,
+    checkRestOfRow(T, SndLstCellInd, NextIndex).
+
 checkPowerCorner(Row) :-
     length(Row, Cellcount),
     nth0(1, Row, SecondCell),
     SndLstCellInd is Cellcount - 2,
     nth0(SndLstCellInd, Row, SndLastCell),
     ( SecondCell == p ; SecondCell == r ),
-    ( SndLastCell == p ; SndLastCell == r).
+    ( SndLastCell == p ; SndLastCell == r),
+    checkRestOfRow(Row, SndLstCellInd, 0).
+
+noPowerCells([]).
+noPowerCells([H|T]) :-
+    H \== p,
+    H \== r,
+    noPowerCells(T).
+
+checkNoOtherPowers(_, SndLastRowInd, SndLastRowInd).
+checkNoOtherPowers([H|T], SndLastRowInd, Index) :-
+    (
+     Index == 1 ;
+     Index \== 1, noPowerCells(H)
+    ),
+    NextIndex is Index + 1,
+    checkNoOtherPowers(T, SndLastRowInd, NextIndex).
     
 powerCells(Map) :-
     length(Map, Rowcount),
@@ -71,7 +96,8 @@ powerCells(Map) :-
     SndLstRowInd is Rowcount - 2,
     nth0(SndLstRowInd, Map, SndLastRow),
     checkPowerCorner(SecondRow),
-    checkPowerCorner(SndLastRow).
+    checkPowerCorner(SndLastRow),
+    checkNoOtherPowers(Map, SndLstRowInd, 0).
 
 shortestPath(Map, PositionOfMan, SuccessX, SuccessY, ShortestPath) :-
     findall(Length-Path, (findPathStart(Map, PositionOfMan, SuccessX, SuccessY, Path), length(Path, Length)), All),
