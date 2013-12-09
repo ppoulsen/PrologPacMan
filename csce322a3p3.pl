@@ -22,15 +22,31 @@ validCells([H|T]) :-
   validCellsRow(H),
   validCells(T).
 
-checkEdges([]).
-checkEdges([H|T]) :-
+checkNoBordersInMid(_, LastCellIndex, LastCellIndex).
+checkNoBordersInMid([H|T], CellIndex, LastCellIndex) :-
+    (
+     CellIndex == 0 ;
+     CellIndex \= 0, H \== b
+    ),
+    NewCellInd is CellIndex + 1,
+    checkNoBordersInMid(T, NewCellInd, LastCellIndex).
+
+checkEdges([], _, _).
+checkEdges([H|T], Index, LastRowIndex) :-
     nth0(0, H, FirstCell),
     length(H, CellCount),
     LastCellIndex is CellCount - 1,
     nth0(LastCellIndex, H, LastCell),
-    FirstCell == b,
-    LastCell == b,
-    checkEdges(T).
+    ( Index == 0 ;
+      Index == LastRowIndex ;
+      Index \== 0,
+      Index \== LastRowIndex,
+      checkNoBordersInMid(H, 0, LastCellIndex),
+      FirstCell == b,
+      LastCell == b
+    ),
+    NewIndex is Index + 1,
+    checkEdges(T, NewIndex, LastRowIndex).
 
 checkBorders(Map) :-
     length(Map, Rowcount),
@@ -39,7 +55,7 @@ checkBorders(Map) :-
     nth0(LastRowIndex, Map, LastRow),
     allBorders(FirstRow),
     allBorders(LastRow),
-    checkEdges(Map).
+    checkEdges(Map, 0, LastRowIndex).
 
 checkPowerCorner(Row) :-
     length(Row, Cellcount),
