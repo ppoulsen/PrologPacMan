@@ -46,10 +46,9 @@
 Aside from the sources provided in the assignment, I used Seven
 Languages in Seven Weeks as a tutorial when first learning ProLog.
 
-Also, for the shortest path algorithm, I drew a lot of inspiration from
+Also, for the shortest path algorithm, I drew inspiration from
 this StackOverflow post:
 http://stackoverflow.com/a/20344609/1440310
 Specifically, the use of findall(), keysort(), and memberchk() to generate
-a list of all possible paths and then sort to find the shortest one. The
-algorithm had to be altered beyond that to fit the needs of this assignment. 
+a list of all possible paths and then sort to find the shortest one. 
 ------------
