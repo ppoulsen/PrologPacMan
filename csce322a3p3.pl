@@ -150,9 +150,29 @@ reachableCells(Map) :-
     findSymbol(Map, m, PositionOfPacman),
     checkAllCells(Map, Map, PositionOfPacman, 0).
 
+pacCountRow([], RowCount) :- RowCount is 0.
+pacCountRow([m|T], RowCount) :-
+    pacCountRow(T, RemainingRowCount),
+    RowCount is (1 + RemainingRowCount).
+pacCountRow([H|T], RowCount) :-
+    H \== m,
+    pacCountRow(T, RemainingRowCount),
+    RowCount is RemainingRowCount.
+
+pacCount([], PacCount) :- PacCount is 0.
+pacCount([H|T], PacCount) :-
+    pacCountRow(H, RowCount),
+    pacCount(T, RestOfPacCount),
+    PacCount is (RowCount + RestOfPacCount).
+
+onePacMan(Map) :-
+    pacCount(Map, PacCount),
+    PacCount == 1.
+
 makeMap(Map) :-
     validCells(Map),
     percentWalls(Map),
     checkBorders(Map),
     powerCells(Map),
-    reachableCells(Map).
+    reachableCells(Map),
+    onePacMan(Map).
